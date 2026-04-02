@@ -340,6 +340,9 @@ _docker.new = function()
 	local _new = docker.new(_docker.options)
 	_new.containers_upgrade = upgrade
 	_new.containers_duplicate_config = duplicate_config
+	_new.get_cached_data = _docker.get_cached_data
+	_new.cache = {}
+	_new.cache_expire = _docker.cache_expire
 
 	return _new
 end
