@@ -9,6 +9,33 @@ local uci = (require "luci.model.uci").cursor()
 
 local _docker = {}
 _docker.options = {}
+_docker.cache = {}
+_docker.cache_expire = 30 -- 缓存过期时间（秒）
+
+-- 缓存机制
+_docker.get_cached_data = function(self, key, fetch_func)
+    local now = os.time()
+    local cached = self.cache[key]
+    
+    if cached and now - cached.timestamp< self.cache_expire then
+        return cached.data
+    end
+    
+    local data = fetch_func()
+    self.cache[key] = {
+        data = data,
+        timestamp = now
+    }
+    return data
+end
+
+_docker.clear_cache = function(self, key)
+    if key then
+        self.cache[key] = nil
+    else
+        self.cache = {}
+    end
+end
 
 --pull image and return iamge id
 local update_image = function(self, image_name)

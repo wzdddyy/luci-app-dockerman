@@ -12,15 +12,16 @@ local m, s, o
 if dk:_ping().code ~= 200 then
 	lost_state = true
 else
-	res = dk.images:list()
-	if res and res.code and res.code < 300 then
-		images = res.body
-	end
+	-- 使用缓存机制减少 API 调用
+	images = dk:get_cached_data("images_list", function()
+		local res = dk.images:list()
+		return res and res.code and res.code< 300 and res.body or nil
+	end)
 
-	res = dk.containers:list({ query = {	all = true } })
-	if res and res.code and res.code < 300 then
-		containers = res.body
-	end
+	containers = dk:get_cached_data("containers_list", function()
+		local res = dk.containers:list({ query = { all = true } })
+		return res and res.code and res.code < 300 and res.body or nil
+	end)
 end
 
 function get_images()

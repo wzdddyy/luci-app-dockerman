@@ -103,15 +103,30 @@ s.volumes_total = '-'
 
 -- local socket = luci.model.uci.cursor():get("dockerd", "dockerman", "socket_path")
 if not lost_state then
-	local containers_res = dk.containers:list({query = {all=true}})
-	local containers_list = containers_res and containers_res.body or {}
-	local images_res = dk.images:list()
-	local images_list = images_res and images_res.body or {}
-	local vol = dk.volumes:list()
-	local volumes_list = vol and vol.body and vol.body.Volumes or {}
-	local networks_res = dk.networks:list()
-	local networks_list = networks_res and networks_res.body or {}
-	local docker_info = dk:info()
+	-- 使用缓存机制减少 API 调用
+	local containers_list = dk:get_cached_data("containers_list", function()
+		local containers_res = dk.containers:list({query = {all=true}})
+		return containers_res and containers_res.body or {}
+	end)
+	
+	local images_list = dk:get_cached_data("images_list", function()
+		local images_res = dk.images:list()
+		return images_res and images_res.body or {}
+	end)
+	
+	local volumes_list = dk:get_cached_data("volumes_list", function()
+		local vol = dk.volumes:list()
+		return vol and vol.body and vol.body.Volumes or {}
+	end)
+	
+	local networks_list = dk:get_cached_data("networks_list", function()
+		local networks_res = dk.networks:list()
+		return networks_res and networks_res.body or {}
+	end)
+	
+	local docker_info = dk:get_cached_data("docker_info", function()
+		return dk:info()
+	end)
 
 	-- docker_info_table['0OperatingSystem']._value = docker_info.body.OperatingSystem
 	-- docker_info_table['1Architecture']._value = docker_info.body.Architecture
